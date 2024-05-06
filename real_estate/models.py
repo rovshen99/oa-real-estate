@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from django.contrib.auth.models import User
 from django.db import models
 
@@ -27,17 +29,17 @@ class RealEstate(models.Model):
     address = models.CharField(max_length=255, verbose_name="Адрес")
     city = models.ForeignKey(City, on_delete=models.SET_NULL, null=True, verbose_name="Город")
     type = models.CharField(max_length=20, choices=REAL_ESTATE_TYPES, default='apartment', verbose_name="Тип недвижимости")
-    price = models.IntegerField(verbose_name="Цена")
+    total_cost = models.IntegerField(verbose_name="Цена недвижимости", default=0)
     currency = models.CharField(max_length=3, choices=CURRENCY_CHOICES, default='USD', verbose_name="Валюта")
     total_area = models.FloatField(verbose_name="Общая площадь m²")
     living_area = models.FloatField(null=True, blank=True, verbose_name="Жилая площадь m²")
     kitchen_area = models.FloatField(null=True, blank=True, verbose_name="Площадь кухни m²")
     rooms = models.IntegerField(verbose_name="Количество комнат")
     balconies = models.IntegerField(default=0, verbose_name="Количество балконов")
-    number_of_floors = models.IntegerField(blank=True, null=True, verbose_name="Количество этажей")
-    floor = models.IntegerField(blank=True, null=True, verbose_name="Этаж")
+    number_of_floors = models.IntegerField(blank=True, null=True, verbose_name="Количество этажей", default=0)
+    floor = models.IntegerField(blank=True, null=True, verbose_name="Этаж", default=0)
     description = models.TextField(verbose_name="Описание")
-    year_built = models.IntegerField(verbose_name="Год постройки")
+    year_built = models.IntegerField(verbose_name="Год постройки", default=datetime.now().year)
     is_available = models.BooleanField(default=True, verbose_name="Доступность")
     created_time = models.DateTimeField(auto_now_add=True, verbose_name="Время создания")
     updated_time = models.DateTimeField(auto_now=True, verbose_name="Время последнего обновления")
@@ -47,9 +49,32 @@ class RealEstate(models.Model):
     def __str__(self):
         return self.title
 
+    def remaining_payment(self):
+        paid_total = sum(payment.amount for payment in self.payments.all())
+        return self.total_cost - paid_total
+
     class Meta:
         verbose_name = "недвижимость"
         verbose_name_plural = "недвижимости"
+
+
+class Client(models.Model):
+    name = models.CharField(max_length=255)
+    email = models.EmailField(unique=True)
+
+    def __str__(self):
+        return self.name
+
+
+class Payment(models.Model):
+    client = models.ForeignKey(Client, on_delete=models.CASCADE, related_name='payments')
+    real_estate = models.ForeignKey(RealEstate, on_delete=models.CASCADE, related_name='payments')
+    date = models.DateTimeField(auto_now_add=True)
+    amount = models.DecimalField(max_digits=10, decimal_places=2)
+    description = models.TextField(blank=True, null=True)
+
+    def __str__(self):
+        return f"{self.client.name} paid {self.amount} on {self.date.strftime('%Y-%m-%d')}"
 
 
 class RealEstateImage(models.Model):
