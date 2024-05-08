@@ -4,7 +4,7 @@ from django.utils.html import format_html
 from .models import City, RealEstate, RealEstateImage, Payment, Client
 
 
-class RealEstateImageInline(admin.TabularInline):
+class RealEstateImageInline(admin.StackedInline):
     model = RealEstateImage
     extra = 0
     fields = ('image', 'image_preview',)
@@ -22,7 +22,7 @@ class RealEstateImageInline(admin.TabularInline):
     image_preview.short_description = 'Предпросмотр изображения'
 
 
-class PaymentInline(admin.TabularInline):
+class PaymentInline(admin.StackedInline):
     model = Payment
     extra = 0
     fields = ['client', 'date', 'amount', 'description']

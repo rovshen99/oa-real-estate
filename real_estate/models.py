@@ -62,7 +62,7 @@ class RealEstate(models.Model):
 
 
 class Client(models.Model):
-    name = models.CharField(max_length=255)
+    name = models.CharField("Имя", max_length=255)
     email = models.EmailField(unique=True, blank=True, null=True)
 
     class Meta:
@@ -74,11 +74,11 @@ class Client(models.Model):
 
 
 class Payment(models.Model):
-    client = models.ForeignKey(Client, on_delete=models.CASCADE, related_name='payments')
+    client = models.ForeignKey(Client, verbose_name="Клиент", on_delete=models.CASCADE, related_name='payments')
     real_estate = models.ForeignKey(RealEstate, on_delete=models.CASCADE, related_name='payments')
-    date = models.DateField(default=timezone.now)
-    amount = models.DecimalField(max_digits=10, decimal_places=2)
-    description = models.TextField(blank=True, null=True)
+    date = models.DateField("Дата оплаты", default=timezone.now)
+    amount = models.DecimalField("Сумма оплаты", max_digits=10, decimal_places=2)
+    description = models.TextField("Описание", blank=True, null=True)
 
     class Meta:
         verbose_name = "оплата"
