@@ -2,6 +2,7 @@ from datetime import datetime
 
 from django.contrib.auth.models import User
 from django.db import models
+from django.utils import timezone
 
 
 class City(models.Model):
@@ -50,7 +51,9 @@ class RealEstate(models.Model):
         return self.title
 
     def remaining_payment(self):
+        print(1)
         paid_total = sum(payment.amount for payment in self.payments.all())
+        print(paid_total)
         return self.total_cost - paid_total
 
     class Meta:
@@ -60,7 +63,11 @@ class RealEstate(models.Model):
 
 class Client(models.Model):
     name = models.CharField(max_length=255)
-    email = models.EmailField(unique=True)
+    email = models.EmailField(unique=True, blank=True, null=True)
+
+    class Meta:
+        verbose_name = "покупатель"
+        verbose_name_plural = "покупатели"
 
     def __str__(self):
         return self.name
@@ -69,9 +76,13 @@ class Client(models.Model):
 class Payment(models.Model):
     client = models.ForeignKey(Client, on_delete=models.CASCADE, related_name='payments')
     real_estate = models.ForeignKey(RealEstate, on_delete=models.CASCADE, related_name='payments')
-    date = models.DateTimeField(auto_now_add=True)
+    date = models.DateField(default=timezone.now)
     amount = models.DecimalField(max_digits=10, decimal_places=2)
     description = models.TextField(blank=True, null=True)
+
+    class Meta:
+        verbose_name = "оплата"
+        verbose_name_plural = "оплаты"
 
     def __str__(self):
         return f"{self.client.name} paid {self.amount} on {self.date.strftime('%Y-%m-%d')}"

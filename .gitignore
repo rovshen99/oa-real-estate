@@ -90,3 +90,11 @@ local_settings.py
 db.sqlite3
 real_estate_images
 media
+
+
+IP_Addresses.txt
+IP_Addresses1.txt
+foundips.txt
+ip-finder.py
+ip-finder1-sync.py
+ip-finder1.py
