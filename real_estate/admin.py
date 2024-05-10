@@ -31,7 +31,7 @@ class PaymentInline(admin.StackedInline):
 class RealEstateAdmin(admin.ModelAdmin):
     list_display = ('title', 'address', 'price_display', 'remaining_payment_display', 'city', 'is_available')
     search_fields = ('title', 'address', 'description')
-    readonly_fields = ('created_by', 'updated_by')
+    readonly_fields = ('created_by', 'updated_by', 'remaining_payment_display')
     inlines = [RealEstateImageInline, PaymentInline]
 
     def save_model(self, request, obj, form, change):
@@ -47,8 +47,8 @@ class RealEstateAdmin(admin.ModelAdmin):
         queryset = queryset.prefetch_related('payments')
         return queryset
 
-    class Media:
-        js = ('js/admin_custom.js',)
+    # class Media:
+    #     js = ('js/admin_custom.js',)
 
     def price_display(self, obj):
         return format_html(f"{obj.total_cost} {obj.currency}")
@@ -62,7 +62,7 @@ class ClientAdmin(admin.ModelAdmin):
 
 @admin.register(Payment)
 class PaymentAdmin(admin.ModelAdmin):
-    list_display = ['client', 'real_estate', 'date', 'amount', 'description']
+    list_display = ['client', 'real_estate', 'date', 'amount', 'payment_type', 'description']
     list_filter = ['client', 'real_estate', 'date']
 
 

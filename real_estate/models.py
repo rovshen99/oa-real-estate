@@ -88,10 +88,10 @@ class Payment(models.Model):
         ("C", "Наличная оплата")
     )
     client = models.ForeignKey(Client, verbose_name="Клиент", on_delete=models.CASCADE, related_name='payments')
-    real_estate = models.ForeignKey(RealEstate, on_delete=models.CASCADE, related_name='payments')
+    real_estate = models.ForeignKey(RealEstate, verbose_name="Недвижимостъ", on_delete=models.CASCADE, related_name='payments')
     date = models.DateField(verbose_name="Дата оплаты", default=timezone.now)
     amount = models.DecimalField(verbose_name="Сумма оплаты", max_digits=10, decimal_places=2)
-    description = models.TextField(verbose_name="Описание", blank=True, null=True)
+    description = models.TextField(verbose_name="Примечание", blank=True, null=True)
     receipt_number = models.CharField(verbose_name="Номер квитанции", max_length=100, blank=True, null=True)
     payment_type = models.CharField(verbose_name="Форма оплаты", max_length=1, choices=PAYMENT_CHOICES, default="C")
 
