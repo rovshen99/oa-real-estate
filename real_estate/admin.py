@@ -25,19 +25,22 @@ class RealEstateImageInline(admin.StackedInline):
 class PaymentInline(admin.StackedInline):
     model = Payment
     extra = 0
-    fields = ['client', 'date', 'amount', 'description']
+    fields = ['client', 'date', 'amount', 'description', "payment_type"]
 
 
 class RealEstateAdmin(admin.ModelAdmin):
     list_display = ('title', 'address', 'price_display', 'remaining_payment_display', 'city', 'is_available')
-    # list_filter = ('city', 'is_available')
     search_fields = ('title', 'address', 'description')
     readonly_fields = ('created_by', 'updated_by')
     inlines = [RealEstateImageInline, PaymentInline]
 
+    def save_model(self, request, obj, form, change):
+        obj.save(user=request.user)
+        super().save_model(request, obj, form, change)
+
     @admin.display(description='Осталось оплатить')
     def remaining_payment_display(self, obj):
-        return obj.remaining_payment
+        return obj.remaining_payment()
 
     def get_queryset(self, request):
         queryset = super().get_queryset(request)
