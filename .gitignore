@@ -92,9 +92,7 @@ real_estate_images
 media
 
 
-IP_Addresses.txt
-IP_Addresses1.txt
+#IP_Addresses.txt
+#IP_Addresses1.txt
+ip*
 foundips.txt
-ip-finder.py
-ip-finder1-sync.py
-ip-finder1.py
