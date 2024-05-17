@@ -7,7 +7,7 @@ from django.utils import timezone
 
 
 class City(models.Model):
-    name = models.CharField(max_length=100, verbose_name="Название города")
+    name = models.CharField(max_length=100, verbose_name="Название города", unique=True)
 
     class Meta:
         verbose_name = "город"
@@ -18,7 +18,7 @@ class City(models.Model):
 
 
 class RealEstateType(models.Model):
-    name = models.CharField(max_length=100, verbose_name="Тип недвижимости")
+    name = models.CharField(max_length=100, verbose_name="Тип недвижимости", unique=True)
 
     class Meta:
         verbose_name = "тип недвижимостей"
@@ -28,13 +28,24 @@ class RealEstateType(models.Model):
         return self.name
 
 
+class Project(models.Model):
+    title = models.CharField(max_length=255, verbose_name="Название")
+
+    class Meta:
+        verbose_name = "объект"
+        verbose_name_plural = "объекты"
+
+    def __str__(self):
+        return self.title
+
+
 class RealEstate(models.Model):
     CURRENCY_CHOICES = (
         ('USD', 'Доллар США'),
         ('TMT', 'Туркменский манат'),
     )
-    title = models.CharField(max_length=255, verbose_name="Название")
-    address = models.CharField(max_length=255, verbose_name="Адрес")
+    project = models.ForeignKey(Project, on_delete=models.SET_NULL, related_name='real_estates', verbose_name="Объект",
+                                blank=True, null=True)
     house_number = models.CharField(max_length=10, verbose_name="Номер дома", blank=True, null=True,)
     entrance_number = models.IntegerField(verbose_name="Номер подъезда", blank=True, null=True,)
     apartment_number = models.IntegerField(verbose_name="Номер квартиры", blank=True, null=True,)
@@ -69,7 +80,9 @@ class RealEstate(models.Model):
             raise ValidationError("Цена не может быть ниже нуля.")
 
     def __str__(self):
-        return f"{self.title} - {self.address}"
+        if self.project:
+            return self.project.title
+        return ""
 
     class Meta:
         verbose_name = "недвижимость"

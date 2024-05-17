@@ -37,7 +37,6 @@ ALLOWED_HOSTS = ['*']
 INSTALLED_APPS = [
     'jazzmin',
     # 'grappelli',
-    'nested_admin',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -151,3 +150,17 @@ MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 USE_L10N = True
+
+JAZZMIN_SETTINGS = {
+    "order_with_respect_to": [
+        # "auth",
+        "real_estate",
+        "real_estate.City",
+        "real_estate.Project",
+        "real_estate.RealEstate",
+        "real_estate.Buyer",
+        "real_estate.Transaction",
+        "real_estate.Payment",
+        # "real_estate.RealEstateImage",
+    ],
+}

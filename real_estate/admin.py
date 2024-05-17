@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.utils.html import format_html
 
-from .models import City, RealEstate, RealEstateImage, Payment, Buyer, RealEstateType, Transaction
+from .models import City, RealEstate, RealEstateImage, Payment, Buyer, RealEstateType, Transaction, Project
 
 
 class RealEstateImageInline(admin.StackedInline):
@@ -32,6 +32,17 @@ class TransactionInline(admin.StackedInline):
     raw_id_fields = ['buyer']
     inlines = [PaymentInline]
 
+    def buyer_info(self, instance):
+        return format_html("<b>{}</b><br>Email: {}", instance.buyer.name, instance.buyer.email)
+
+    buyer_info.short_description = "Информация о клиенте"
+
+    def remaining_payment(self, instance):
+        payments_total = sum(payment.amount for payment in instance.payments.all())
+        remaining = instance.amount - payments_total
+        return format_html("<b>{}</b> {}", remaining, instance.real_estate.currency)
+
+    remaining_payment.short_description = "Остаток по сделке"
 
 # @admin.register(RealEstate)
 # class RealEstateAdmin(admin.ModelAdmin):
@@ -57,17 +68,18 @@ class TransactionInline(admin.StackedInline):
 #         return format_html(f"{obj.total_cost} {obj.currency}")
 #     price_display.short_description = 'Цена'
 
+
 @admin.register(RealEstate)
 class RealEstateAdmin(admin.ModelAdmin):
-    list_display = ('title', 'city', 'type', 'is_available', 'total_cost')
+    list_display = ('project', 'city', 'type', 'is_available', 'total_cost', 'clients_and_remaining_payments')
     list_filter = ('city', 'is_available', 'type')
-    search_fields = ('title', 'description', 'address')
+    search_fields = ('project__title', 'description')
     inlines = [RealEstateImageInline]
     readonly_fields = ('created_time', 'created_by', 'updated_time', 'updated_by')
     fieldsets = (
         (None, {
             'fields': (
-                'title', 'address', 'house_number', 'building', 'apartment_number', 'city', 'type', 'total_area',
+                'project', 'house_number', 'building', 'apartment_number', 'city', 'type', 'total_area',
                 'rooms_count', 'floor', 'description', 'year_built', 'is_available', 'cost_per_sqm', 'total_cost',
                 'currency')
         }),
@@ -77,15 +89,23 @@ class RealEstateAdmin(admin.ModelAdmin):
         }),
     )
 
-    # def save_model(self, request, obj, form, change):
-    #     obj.save(user=request.user)
-    #     super().save_model(request, obj, form, change)
-
     def save_model(self, request, obj, form, change):
         if not obj.pk:
             obj.created_by = request.user
         obj.updated_by = request.user
         super().save_model(request, obj, form, change)
+
+    def clients_and_remaining_payments(self, obj):
+        transactions = obj.transactions.all()
+        if transactions.exists():
+            clients_payments = [
+                f"<b>{transaction.buyer.name}</b>  {transaction.amount - sum(payment.amount for payment in transaction.payments.all())} {obj.currency}"
+                for transaction in transactions
+            ]
+            return format_html("<br>".join(clients_payments))
+        return "Нет сделок"
+
+    clients_and_remaining_payments.short_description = 'Клиенты и остаток оплаты'
 
 
 @admin.register(Buyer)
@@ -109,3 +129,8 @@ class RealEstateTypeAdmin(admin.ModelAdmin):
 @admin.register(City)
 class CityAdmin(admin.ModelAdmin):
     list_display = ['name']
+
+
+@admin.register(Project)
+class ObjectAdmin(admin.ModelAdmin):
+    list_display = ['title']
