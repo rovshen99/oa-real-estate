@@ -48,7 +48,7 @@ class RealEstate(models.Model):
                                 blank=True, null=True)
     house_number = models.CharField(max_length=10, verbose_name="Номер дома", blank=True, null=True,)
     entrance_number = models.IntegerField(verbose_name="Номер подъезда", blank=True, null=True,)
-    apartment_number = models.IntegerField(verbose_name="Номер квартиры", blank=True, null=True,)
+    apartment_number = models.IntegerField(verbose_name="Номер квартиры (офиса, магазина)", blank=True, null=True,)
     building = models.CharField(max_length=10, verbose_name="Корпус", blank=True, null=True)
     city = models.ForeignKey(City, on_delete=models.SET_NULL, null=True, verbose_name="Город")
     type = models.ForeignKey(RealEstateType, on_delete=models.SET_NULL, null=True, verbose_name="Тип недвижимости")
