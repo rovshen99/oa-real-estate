@@ -52,13 +52,15 @@ class RealEstate(models.Model):
     building = models.CharField(max_length=10, verbose_name="Корпус", blank=True, null=True)
     city = models.ForeignKey(City, on_delete=models.SET_NULL, null=True, verbose_name="Город")
     type = models.ForeignKey(RealEstateType, on_delete=models.SET_NULL, null=True, verbose_name="Тип недвижимости")
-    cost_per_sqm = models.DecimalField(max_digits=10, decimal_places=2,
-                                               verbose_name='Фактическая стоимость за квадратный метр')
-    total_cost = models.DecimalField(verbose_name="Фактическая стоимость недвижимости", max_digits=12, decimal_places=2, default=0)
+    cost_per_sqm = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True,
+                                       verbose_name='Фактическая стоимость за квадратный метр')
+    total_cost = models.DecimalField(verbose_name="Фактическая стоимость недвижимости", blank=True, null=True,
+                                     max_digits=12, decimal_places=2, default=0)
     currency = models.CharField(max_length=3, choices=CURRENCY_CHOICES, default='USD', verbose_name="Валюта")
     total_area = models.FloatField(verbose_name="Общая площадь m²")
     rooms_count = models.IntegerField(verbose_name="Количество комнат")
     floor = models.IntegerField(blank=True, null=True, verbose_name="Этаж", default=0)
+    floors_count = models.IntegerField(verbose_name="Количество этажей", default=0)
     description = models.TextField(verbose_name="Примечание", blank=True, null=True)
     year_built = models.IntegerField(verbose_name="Год постройки", default=datetime.now().year)
     is_available = models.BooleanField(default=True, verbose_name="Доступность")
@@ -151,7 +153,8 @@ class Transaction(models.Model):
 class Payment(models.Model):
     PAYMENT_CHOICES = (
         ("T", "Перечисление"),
-        ("C", "Наличная оплата")
+        ("C", "Наличная оплата"),
+        ("M", "Взаиморассчет")
     )
     transaction = models.ForeignKey(Transaction, verbose_name="Сделка", on_delete=models.CASCADE,
                                     related_name='payments', blank=True, null=True)

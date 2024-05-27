@@ -1,6 +1,9 @@
 from django.contrib import admin
+from django.http import HttpResponse
+from django.urls import path
 from django.utils.html import format_html
 
+from .excel_utils import create_real_estate_excel, get_filename
 from .models import City, RealEstate, RealEstateImage, Payment, Buyer, RealEstateType, Transaction, Project
 
 
@@ -44,34 +47,10 @@ class TransactionInline(admin.StackedInline):
 
     remaining_payment.short_description = "Остаток по сделке"
 
-# @admin.register(RealEstate)
-# class RealEstateAdmin(admin.ModelAdmin):
-#     list_display = ('title', 'address', 'price_display', 'remaining_payment_display', 'city', 'is_available')
-#     search_fields = ('title', 'address', 'description')
-#     readonly_fields = ('created_by', 'updated_by', 'remaining_payment_display')
-#     inlines = [RealEstateImageInline, PaymentInline]
-#
-#     def save_model(self, request, obj, form, change):
-#         obj.save(user=request.user)
-#         super().save_model(request, obj, form, change)
-#
-#     @admin.display(description='Осталось оплатить')
-#     def remaining_payment_display(self, obj):
-#         return obj.remaining_payment()
-#
-#     def get_queryset(self, request):
-#         queryset = super().get_queryset(request)
-#         queryset = queryset.prefetch_related('payments')
-#         return queryset
-#
-#     def price_display(self, obj):
-#         return format_html(f"{obj.total_cost} {obj.currency}")
-#     price_display.short_description = 'Цена'
-
 
 @admin.register(RealEstate)
 class RealEstateAdmin(admin.ModelAdmin):
-    list_display = ('project', 'city', 'type', 'is_available', 'total_cost', 'clients_and_remaining_payments')
+    list_display = ('project', 'city', 'type', 'is_available', 'total_cost', 'floors_count', 'clients_and_remaining_payments')
     list_filter = ('city', 'is_available', 'type')
     search_fields = ('project__title', 'description')
     inlines = [RealEstateImageInline]
@@ -80,7 +59,7 @@ class RealEstateAdmin(admin.ModelAdmin):
         (None, {
             'fields': (
                 'project', 'house_number', 'building', 'apartment_number', 'city', 'type', 'total_area',
-                'rooms_count', 'floor', 'description', 'year_built', 'is_available', 'cost_per_sqm', 'total_cost',
+                'rooms_count', 'floor', 'floors_count', 'description', 'year_built', 'is_available', 'cost_per_sqm', 'total_cost',
                 'currency')
         }),
         ('Дополнительные данные', {
@@ -94,6 +73,33 @@ class RealEstateAdmin(admin.ModelAdmin):
             obj.created_by = request.user
         obj.updated_by = request.user
         super().save_model(request, obj, form, change)
+
+    def get_urls(self):
+        urls = super().get_urls()
+        custom_urls = [
+            path('export_excel/', self.export_excel, name='export_real_estate_excel')
+        ]
+        return custom_urls + urls
+
+    def export_excel(self, request):
+        real_estates = RealEstate.objects.prefetch_related('transactions__buyer', 'transactions__payments').all()
+        data = []
+        for real_estate in real_estates:
+            data.append(real_estate)
+
+        excel_data = create_real_estate_excel(data)
+
+        response = HttpResponse(
+            excel_data,
+            content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        )
+        response['Content-Disposition'] = f"attachment; filename={get_filename()}"
+        return response
+
+    def changelist_view(self, request, extra_context=None):
+        extra_context = extra_context or {}
+        extra_context['custom_button'] = True
+        return super().changelist_view(request, extra_context=extra_context)
 
     def clients_and_remaining_payments(self, obj):
         transactions = obj.transactions.all()
