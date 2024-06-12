@@ -43,7 +43,8 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'real_estate.apps.RealEstateConfig'
+    'real_estate.apps.RealEstateConfig',
+    'vehicle.apps.VehicleConfig',
 ]
 
 MIDDLEWARE = [
@@ -153,7 +154,6 @@ USE_L10N = True
 
 JAZZMIN_SETTINGS = {
     "order_with_respect_to": [
-        # "auth",
         "real_estate",
         "real_estate.City",
         "real_estate.Project",
@@ -161,6 +161,10 @@ JAZZMIN_SETTINGS = {
         "real_estate.Buyer",
         "real_estate.Transaction",
         "real_estate.Payment",
+        "vehicle",
+        "vehicle.Vehicle",
+        "vehicle.Name",
+        "auth",
         # "real_estate.RealEstateImage",
     ],
 }
