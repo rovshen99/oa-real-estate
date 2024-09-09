@@ -1,4 +1,6 @@
+from django.contrib.auth.models import User
 from django.db import models
+from django.utils import timezone
 
 
 class VehicleBrand(models.Model):
@@ -57,6 +59,7 @@ class VehicleCategory(models.Model):
 
 
 class Vehicle(models.Model):
+    driver = models.ForeignKey(User, on_delete=models.CASCADE, blank=True, null=True, verbose_name="Водитель")
     registration_number = models.CharField(max_length=100, blank=True, null=True, verbose_name="Регистрационный номер")
     brand = models.ForeignKey(VehicleBrand, on_delete=models.CASCADE, blank=True, null=True, verbose_name="Бренд")
     name = models.ForeignKey(VehicleName, on_delete=models.CASCADE, blank=True, null=True, verbose_name="Название")
@@ -215,3 +218,19 @@ class FuelRecord(models.Model):
     class Meta:
         verbose_name = "Запись заправки топлива"
         verbose_name_plural = "Записи заправки топлива"
+
+
+class DailyReport(models.Model):
+    vehicle = models.ForeignKey(Vehicle, on_delete=models.CASCADE, related_name='daily_reports')
+    # driver = models.ForeignKey(User, on_delete=models.CASCADE)
+    date = models.DateField(default=timezone.now, verbose_name="Дата отчета")
+    created_date = models.DateTimeField(auto_now_add=True, verbose_name="Когда отчет отправлен")
+    report = models.TextField(verbose_name="Report Details")
+
+    def __str__(self):
+        return f"{self.vehicle.registration_number} - {self.date}"
+
+    class Meta:
+        verbose_name = "Ежедневный отчет"
+        verbose_name_plural = "Ежедневные отчеты"
+        unique_together = ('vehicle', 'date')

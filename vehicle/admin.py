@@ -1,8 +1,12 @@
+from datetime import datetime, timedelta
+
 from django.contrib import admin
+
 from .models import (
     VehicleBrand, VehicleName, GPSTrackerModel, Location,
     VehicleCategory, Vehicle, SparePart, MaintenanceRecord,
-    MaintenancePart, Supplier, SparePartOrder, SparePartOrderItem, FuelType, OilChangeRecord, VehicleCondition, FuelRecord
+    MaintenancePart, Supplier, SparePartOrder, SparePartOrderItem, FuelType, OilChangeRecord, VehicleCondition,
+    FuelRecord, DailyReport
 )
 
 
@@ -101,6 +105,37 @@ class FuelRecordAdmin(admin.ModelAdmin):
     search_fields = ('vehicle__registration_number', 'date', 'fuel_type__name')
 
 
+class DateListFilter(admin.SimpleListFilter):
+    title = 'Дата отчета'
+    parameter_name = 'date'
+
+    def lookups(self, request, model_admin):
+        return [
+            ('today', 'Сегодня'),
+            ('yesterday', 'Вчера'),
+            ('last_7_days', 'Последние 7 дней'),
+            ('this_month', 'Этот месяц'),
+        ]
+
+    def queryset(self, request, queryset):
+        if self.value() == 'today':
+            return queryset.filter(date=datetime.today().date())
+        elif self.value() == 'yesterday':
+            return queryset.filter(date=datetime.today().date() - timedelta(days=1))
+        elif self.value() == 'last_7_days':
+            return queryset.filter(date__gte=datetime.today().date() - timedelta(days=7))
+        elif self.value() == 'this_month':
+            return queryset.filter(date__month=datetime.today().date().month)
+        return queryset
+
+
+class DailyReportAdmin(admin.ModelAdmin):
+    list_display = ('vehicle', 'date', 'report')
+    search_fields = ('vehicle__registration_number',)
+    list_filter = ('vehicle__registration_number', DateListFilter)
+
+
+admin.site.register(DailyReport, DailyReportAdmin)
 admin.site.register(VehicleBrand, VehicleBrandAdmin)
 admin.site.register(VehicleName, VehicleNameAdmin)
 admin.site.register(GPSTrackerModel, GPSTrackerModelAdmin)

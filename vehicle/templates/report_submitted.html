@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container">
+    <h2>Отчет отправлен</h2>
+    <p>Ваш отчет успешно отправлен!</p>
+    <a href="{% url 'submit_daily_report' %}">Вернуться к форме отправки отчета</a>
+</div>
+{% endblock %}
